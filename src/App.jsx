@@ -376,7 +376,7 @@ main,header,footer{position:relative;z-index:1}
 h1,h2,h3{font-family:Syne,"Helvetica Neue",Arial,sans-serif;line-height:1.05;margin:0}
 a{color:inherit;text-decoration:none}
 header{position:sticky;top:env(safe-area-inset-top,0px);z-index:40;background:var(--hbg);backdrop-filter:blur(14px);border-bottom:1px solid var(--line)}
-.bar{max-width:1200px;margin:0 auto;padding:0 20px;height:64px;display:flex;align-items:center;justify-content:space-between;gap:16px}
+.bar{max-width:1200px;margin:0 auto;padding:0 20px;height:64px;display:flex;align-items:center;justify-content:space-between;gap:16px;position:relative}
 .logo{font-family:Syne,sans-serif;font-weight:800;font-size:1.05rem;white-space:nowrap}
 .logo i{font-style:normal;color:var(--green)}
 nav{display:flex;gap:26px;font-size:.92rem}
@@ -386,6 +386,7 @@ nav a{color:var(--mut);transition:color .2s}nav a:hover{color:var(--fg)}
 .btn.ghost{background:transparent;color:var(--fg);border:1px solid var(--line);box-shadow:none}
 .btn.ghost:hover{border-color:var(--fg)}
 .tog{padding:9px 16px;font-size:.82rem}
+.pf-nav-btn{white-space:nowrap;padding:11px 20px;font-size:.9rem}
 :focus-visible{outline:2px solid var(--green);outline-offset:3px}
 .wrap{max-width:1200px;margin:0 auto;padding:0 20px}
 .hero{min-height:calc(100svh - 64px);display:flex;align-items:center}
@@ -431,25 +432,97 @@ footer{border-top:1px solid var(--line);padding:30px 20px;text-align:center;colo
 
 @keyframes pf-fade{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:translateY(0)}}
 
+/* ---------- Bar layout ---------- */
+.bar-actions{display:flex;gap:10px;align-items:center}
+.desk-btn{display:inline-flex}
+
+/* Hamburger (hidden on desktop) */
+.menu-toggle{
+  display:none;
+  align-items:center;justify-content:center;
+  width:40px;height:40px;padding:0;
+  background:transparent;border:1px solid var(--line);border-radius:10px;
+  color:var(--fg);cursor:pointer;
+  transition:border-color .2s,background .2s;
+}
+.menu-toggle:hover{border-color:var(--fg)}
+.menu-toggle .bar-line{
+  display:block;width:18px;height:2px;background:currentColor;border-radius:2px;
+  transition:transform .25s ease, opacity .2s ease;
+}
+.menu-toggle .bar-line + .bar-line{margin-top:4px}
+.menu-toggle.open .bar-line:nth-child(1){transform:translateY(6px) rotate(45deg)}
+.menu-toggle.open .bar-line:nth-child(2){opacity:0}
+.menu-toggle.open .bar-line:nth-child(3){transform:translateY(-6px) rotate(-45deg)}
+
+/* Only shown inside mobile dropdown */
+.nav-extra{display:none}
+
+@media (max-width:1100px){
+  .pf-nav-btn{padding:10px 16px;font-size:.85rem}
+  .pf-nav-btn svg{display:none}
+}
+
+/* ---------- Mobile: hamburger menu ---------- */
 @media (max-width:900px){
+  .bar{
+    padding:10px 16px;
+    height:auto;min-height:64px;
+    flex-wrap:nowrap;gap:10px;
+  }
+  .desk-btn{display:none}
+  .menu-toggle{display:inline-flex}
+
+  nav{
+    position:absolute;
+    top:100%;left:0;right:0;
+    display:flex;flex-direction:column;gap:0;
+    background:var(--hbg);
+    backdrop-filter:blur(16px);
+    border-bottom:1px solid var(--line);
+    box-shadow:0 20px 40px -20px rgba(0,0,0,.35);
+    padding:0 20px;
+    max-height:0;overflow:hidden;
+    transition:max-height .35s ease, padding .35s ease;
+    font-size:.95rem;
+    width:auto;white-space:normal;
+  }
+  nav.open{max-height:620px;padding:8px 20px 18px}
+  nav a{
+    color:var(--fg);
+    padding:12px 4px;
+    border-bottom:1px solid var(--line);
+    width:100%;
+    font-size:.95rem;
+  }
+  nav a:last-of-type{border-bottom:0}
+
+  .nav-extra{
+    display:flex;flex-direction:column;gap:10px;
+    padding-top:14px;margin-top:6px;
+    border-top:1px solid var(--line);
+  }
+  .nav-extra .btn{width:100%}
+
   .grid,.cta{grid-template-columns:1fr}
   .steps{grid-template-columns:1fr 1fr}
   .hero{align-items:flex-end;padding-bottom:90px}
-  .bar{height:auto;min-height:64px;padding:10px 20px;flex-wrap:wrap;row-gap:10px}
-  nav{order:3;width:100%;display:flex;gap:22px;overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;scrollbar-width:none;white-space:nowrap;font-size:.88rem;padding-bottom:2px}
-  nav::-webkit-scrollbar{display:none}
-  nav a{flex:none}
 }
+
 @media (max-width:520px){
   .steps{grid-template-columns:1fr}
-  .hide-sm{display:none}
   section{padding:80px 0}
   .portfolio-band{padding:80px 0}
+  .pf-nav-btn{padding:11px 16px;font-size:.85rem}
+  .tog{padding:8px 12px;font-size:.76rem}
+  .logo{font-size:.95rem}
 }
+
 @media (prefers-reduced-motion:reduce){
   html{scroll-behavior:auto}
   .card,.btn{transition:none}
   .pf-fade,.group{animation:none !important}
+  .menu-toggle .bar-line{transition:none}
 }
 `;
 
@@ -476,6 +549,7 @@ const STEPS = [
 
 const FOCUS_OPTIONS = ["Automation pipelines", "Mobile apps", "Web portal or SaaS", "Cloud cost reduction"];
 const NAV_ITEMS = [["products", "Products"], ["portfolio", "Portfolio"], ["process", "Process"], ["audit", "System audit"]];
+const PORTFOLIO_URL = "https://bluxury.pages.dev/";
 
 /* ------------------------------------------------------------------ */
 /*  Three.js loader                                                   */
@@ -657,6 +731,7 @@ const getInitialTheme = () => {
 export default function App() {
   const [theme, setTheme] = useState(getInitialTheme);
   const [activeId, setActiveId] = useState(null);
+  const [menuOpen, setMenuOpen] = useState(false);
   const savedScroll = useRef(0);
 
   const [form, setForm] = useState({ name: "", email: "", focus: FOCUS_OPTIONS[0] });
@@ -668,6 +743,31 @@ export default function App() {
     const ref = ThreeScene._colorsRef;
     if (ref && ref.current) ref.current();
   }, [theme]);
+
+  // Close mobile menu when viewport grows past breakpoint
+  useEffect(() => {
+    const onResize = () => { if (window.innerWidth > 900) setMenuOpen(false); };
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, []);
+
+  // Close mobile menu on outside click
+  useEffect(() => {
+    if (!menuOpen) return;
+    const onDown = (e) => {
+      if (!e.target.closest("header")) setMenuOpen(false);
+    };
+    document.addEventListener("mousedown", onDown);
+    return () => document.removeEventListener("mousedown", onDown);
+  }, [menuOpen]);
+
+  // Close mobile menu on Escape
+  useEffect(() => {
+    if (!menuOpen) return;
+    const onKey = (e) => { if (e.key === "Escape") setMenuOpen(false); };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [menuOpen]);
 
   const toggleTheme = useCallback(() => {
     setTheme((t) => (t === "dark" ? "light" : "dark"));
@@ -720,6 +820,7 @@ export default function App() {
 
   const jump = useCallback((id) => {
     PF_LOG(`jump to #${id}`);
+    setMenuOpen(false);
     const el = document.getElementById(id);
     if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
   }, []);
@@ -748,19 +849,67 @@ export default function App() {
 
       <header>
         <div className="bar">
-          <a href="#top" className="logo" onClick={(e) => { e.preventDefault(); window.scrollTo({ top: 0, behavior: "smooth" }); }}>
+          <a
+            href="#top"
+            className="logo"
+            onClick={(e) => { e.preventDefault(); setMenuOpen(false); window.scrollTo({ top: 0, behavior: "smooth" }); }}
+          >
             B LUXURY <i>TECH</i>
           </a>
-          <nav>
+
+          <nav id="main-nav" className={menuOpen ? "open" : ""}>
             {NAV_ITEMS.map(([id, label]) => (
               <a key={id} href={`#${id}`} onClick={(e) => { e.preventDefault(); jump(id); }}>{label}</a>
             ))}
+
+            <div className="nav-extra">
+              <a
+                className="btn pf-nav-btn"
+                href={PORTFOLIO_URL}
+                onClick={() => setMenuOpen(false)}
+                aria-label="See our portfolio"
+              >
+                See our portfolio
+              </a>
+              <button type="button" className="btn ghost tog" onClick={toggleTheme}>
+                {theme === "dark" ? "White mode" : "Black mode"}
+              </button>
+              <button type="button" className="btn" onClick={() => jump("audit")}>
+                Start your audit
+              </button>
+            </div>
           </nav>
-          <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
-            <button type="button" className="btn ghost tog" onClick={toggleTheme} aria-label="Switch theme">
+
+          <div className="bar-actions">
+            <a
+              className="btn pf-nav-btn desk-btn"
+              href={PORTFOLIO_URL}
+              aria-label="See our portfolio"
+            >
+              See our portfolio
+              <ArrowUpRight size={14} aria-hidden="true" />
+            </a>
+
+            <button type="button" className="btn ghost tog desk-btn" onClick={toggleTheme} aria-label="Switch theme">
               {theme === "dark" ? "White mode" : "Black mode"}
             </button>
-            <button type="button" className="btn hide-sm" onClick={() => jump("audit")}>Start your audit</button>
+
+            <button type="button" className="btn desk-btn" onClick={() => jump("audit")}>
+              Start your audit
+            </button>
+
+            <button
+              type="button"
+              className={`menu-toggle${menuOpen ? " open" : ""}`}
+              onClick={() => setMenuOpen((v) => !v)}
+              aria-label="Toggle menu"
+              aria-expanded={menuOpen}
+              aria-controls="main-nav"
+            >
+              <span className="bar-line" />
+              <span className="bar-line" />
+              <span className="bar-line" />
+            </button>
           </div>
         </div>
       </header>
